@@ -9,10 +9,12 @@ A pre-trade checklist that keeps you honest. Define your strategies and their ru
   - 🟢 100% → you can take the trade
   - 🟡 70–99% → wait, not all rules are met (missing rules are listed)
   - 🔴 below 70% → do not take the trade
-- **Trade Log** – log the trade with symbol, direction and notes. Each entry records which rules were met or missed, and the log shows a discipline score (share of trades taken with all rules met).
-- **Export / Import** – back up your strategies and log as JSON.
+- **Screenshots** – attach chart screenshots to a trade: click to pick files, drag & drop, or paste straight from the clipboard (Ctrl+V). Large images are downscaled automatically.
+- **Trade Log** – log the trade with symbol, direction, time, notes and screenshots. The log shows screenshot thumbnails and a discipline score (share of trades taken with all rules met).
+- **Trade detail page** – click any trade (or its **View →** link) to open its own page: date and time, strategies, every rule with ✓/✗, notes (editable), and full-size screenshots. You can add more screenshots later. Each trade has its own link (`index.html#trade-<id>`) you can bookmark or copy.
+- **Export / Import** – back up your strategies, log and screenshots as one JSON file.
 
-Everything is stored in your browser's local storage; no server or account needed.
+Everything is stored in your browser (local storage for data, IndexedDB for screenshots); no server or account needed.
 
 ## Running
 

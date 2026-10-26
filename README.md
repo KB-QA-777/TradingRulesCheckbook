@@ -16,11 +16,28 @@ A pre-trade checklist that keeps you honest. Define your strategies and their ru
 
 Everything is stored in your browser (local storage for data, IndexedDB for screenshots); no server or account needed.
 
-## Running
-
-No build step. Open `index.html` in a browser, or serve the folder:
+## Open it (one click)
 
 ```sh
-python3 -m http.server 8000
-# then visit http://localhost:8000
+git clone https://github.com/KB-QA-777/TradingRulesCheckbook.git
 ```
+
+Then open the cloned folder and double-click the launcher for your system:
+
+| System  | Double-click            |
+|---------|-------------------------|
+| Windows | `Start-Windows.bat`     |
+| macOS   | `Start-Mac.command`     |
+| Linux   | `start-linux.sh`        |
+
+The launcher opens the checkbook in its own app window (no tabs or address bar) using Chrome or Edge. If neither is installed it opens in your default browser. You can also just double-click `index.html`.
+
+No install, build step or internet connection is needed.
+
+**Pin it like an app:** once the window is open, right-click its icon in the taskbar/dock and choose *Pin* / *Keep in Dock*.
+
+**First run notes**
+- macOS may say the file is from an unidentified developer: right-click `Start-Mac.command` → *Open* → *Open*. A Terminal window flashes open; you can close it.
+- Linux file managers may ask whether to run or display the script: choose *Run*. If it isn't executable, run `chmod +x start-linux.sh` once.
+
+**Your data** is saved in the browser profile that opened the app, so keep using the same launcher (or browser) to see your strategies and trades. Use *Export data* on the Trade Log to back up or move to another computer.

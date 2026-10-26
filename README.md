@@ -22,22 +22,37 @@ Everything is stored in your browser (local storage for data, IndexedDB for scre
 git clone https://github.com/KB-QA-777/TradingRulesCheckbook.git
 ```
 
-Then open the cloned folder and double-click the launcher for your system:
+**Windows:** double-click **`TradingRulesCheckbook.exe`**. That's it.
+You can also copy the exe anywhere (e.g. your Desktop) — it carries the app inside it and works on its own.
+
+**macOS / Linux:** double-click the launcher in the cloned folder:
 
 | System  | Double-click            |
 |---------|-------------------------|
-| Windows | `Start-Windows.bat`     |
 | macOS   | `Start-Mac.command`     |
 | Linux   | `start-linux.sh`        |
 
-The launcher opens the checkbook in its own app window (no tabs or address bar) using Chrome or Edge. If neither is installed it opens in your default browser. You can also just double-click `index.html`.
+(`Start-Windows.bat` is also kept as a Windows alternative to the exe.)
+
+The exe and launchers open the checkbook in its own app window (no tabs or address bar) using Chrome or Edge. If neither is installed it opens in your default browser. You can also just double-click `index.html`.
 
 No install, build step or internet connection is needed.
 
 **Pin it like an app:** once the window is open, right-click its icon in the taskbar/dock and choose *Pin* / *Keep in Dock*.
 
 **First run notes**
+- Windows may show *“Windows protected your PC”* because the exe isn't code-signed: click *More info* → *Run anyway*. It only asks once.
 - macOS may say the file is from an unidentified developer: right-click `Start-Mac.command` → *Open* → *Open*. A Terminal window flashes open; you can close it.
 - Linux file managers may ask whether to run or display the script: choose *Run*. If it isn't executable, run `chmod +x start-linux.sh` once.
 
 **Your data** is saved in the browser profile that opened the app, so keep using the same launcher (or browser) to see your strategies and trades. Use *Export data* on the Trade Log to back up or move to another computer.
+
+## Rebuilding the Windows exe
+
+After changing `index.html`, `app.js` or `styles.css`, rebuild the exe so its built-in copy is up to date (needs [Go](https://go.dev/dl/)):
+
+```sh
+sh windows/build.sh
+```
+
+The launcher source is `windows/main.go`. When the exe sits next to `index.html` it opens that file directly; otherwise it unpacks its built-in copy to `%LOCALAPPDATA%\TradingRulesCheckbook\app` and opens that.

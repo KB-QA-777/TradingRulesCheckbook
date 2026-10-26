@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trading Rules Checkbook</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">✓</span>
+      <h1>Trading Rules Checkbook</h1>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-view="checklist" role="tab">Take a Trade</button>
+      <button class="tab" data-view="strategies" role="tab">Strategies &amp; Rules</button>
+      <button class="tab" data-view="journal" role="tab">Trade Log</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ========== TAKE A TRADE ========== -->
+    <section id="view-checklist" class="view active">
+      <div class="grid-2">
+        <div class="card">
+          <h2>1. Trade details</h2>
+          <div class="form-row">
+            <label>Symbol
+              <input id="trade-symbol" type="text" placeholder="e.g. NIFTY, AAPL, BTCUSD" autocomplete="off" />
+            </label>
+            <label>Direction
+              <select id="trade-direction">
+                <option value="Long">Long</option>
+                <option value="Short">Short</option>
+              </select>
+            </label>
+          </div>
+
+          <h2>2. Select strategies</h2>
+          <p class="hint">Pick one or more strategies. Their rules are combined into the checklist.</p>
+          <div id="strategy-picker" class="chips"></div>
+
+          <h2>3. Check the rules you've met</h2>
+          <div id="checklist" class="checklist"></div>
+        </div>
+
+        <div class="card sticky">
+          <h2>Readiness</h2>
+          <div class="gauge">
+            <div class="gauge-track">
+              <div id="gauge-fill" class="gauge-fill"></div>
+            </div>
+            <div class="gauge-label"><span id="gauge-pct">0</span>% met</div>
+            <div id="gauge-count" class="muted">0 / 0 rules</div>
+          </div>
+
+          <div id="verdict" class="verdict neutral">Select a strategy to begin</div>
+
+          <div id="missing-wrap" class="missing hidden">
+            <h3>Still missing</h3>
+            <ul id="missing-list"></ul>
+          </div>
+
+          <label>Notes
+            <textarea id="trade-notes" rows="3" placeholder="Entry, stop, target, reasoning…"></textarea>
+          </label>
+
+          <div class="actions">
+            <button id="btn-log-trade" class="btn primary" disabled>Log trade</button>
+            <button id="btn-reset" class="btn ghost">Reset checklist</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== STRATEGIES & RULES ========== -->
+    <section id="view-strategies" class="view">
+      <div class="grid-2 strategies-layout">
+        <div class="card">
+          <h2>Strategies</h2>
+          <form id="form-add-strategy" class="inline-form">
+            <input id="new-strategy-name" type="text" placeholder="New strategy name, e.g. Breakout" required />
+            <button class="btn primary" type="submit">Add</button>
+          </form>
+          <ul id="strategy-list" class="strategy-list"></ul>
+        </div>
+
+        <div class="card">
+          <div id="rules-empty" class="empty">
+            Add or select a strategy to manage its rules.
+          </div>
+          <div id="rules-panel" class="hidden">
+            <div class="rules-header">
+              <input id="strategy-name-edit" class="title-input" type="text" aria-label="Strategy name" />
+              <button id="btn-delete-strategy" class="btn danger small">Delete strategy</button>
+            </div>
+            <textarea id="strategy-desc-edit" rows="2" placeholder="Description (optional): timeframe, market, setup…"></textarea>
+
+            <h3>Rules</h3>
+            <form id="form-add-rule" class="inline-form">
+              <input id="new-rule-text" type="text" placeholder="e.g. Price above 200 EMA" required />
+              <button class="btn primary" type="submit">Add rule</button>
+            </form>
+            <ol id="rule-list" class="rule-list"></ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== TRADE LOG ========== -->
+    <section id="view-journal" class="view">
+      <div class="card">
+        <div class="rules-header">
+          <h2>Trade log</h2>
+          <div class="actions">
+            <button id="btn-export" class="btn ghost small">Export data</button>
+            <label class="btn ghost small file-btn">Import data
+              <input id="file-import" type="file" accept="application/json" />
+            </label>
+          </div>
+        </div>
+        <div id="journal-stats" class="stats"></div>
+        <div id="journal-empty" class="empty">No trades logged yet.</div>
+        <div class="table-wrap">
+          <table id="journal-table" class="hidden">
+            <thead>
+              <tr>
+                <th>Date</th><th>Symbol</th><th>Side</th><th>Strategies</th><th>Rules met</th><th>Notes</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="journal-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

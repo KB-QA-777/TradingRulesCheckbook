@@ -4,6 +4,38 @@
   const STORAGE_KEY = "trading-rules-checkbook:v1";
   const MAX_SHOT_WIDTH = 1920;
 
+  // Symbol dropdown groups. Users can add their own via "Custom symbol…".
+  const SYMBOLS = [
+    ["Metals", [
+      ["XAUUSD", "Gold"], ["XAGUSD", "Silver"], ["XPTUSD", "Platinum"], ["XPDUSD", "Palladium"],
+    ]],
+    ["Forex — majors", [
+      ["EURUSD"], ["GBPUSD"], ["USDJPY"], ["USDCHF"], ["AUDUSD"], ["USDCAD"], ["NZDUSD"],
+    ]],
+    ["Forex — crosses", [
+      ["EURGBP"], ["EURJPY"], ["EURCHF"], ["EURAUD"], ["EURCAD"], ["EURNZD"],
+      ["GBPJPY"], ["GBPCHF"], ["GBPAUD"], ["GBPCAD"], ["GBPNZD"],
+      ["AUDJPY"], ["AUDCAD"], ["AUDCHF"], ["AUDNZD"],
+      ["NZDJPY"], ["NZDCAD"], ["NZDCHF"], ["CADJPY"], ["CADCHF"], ["CHFJPY"],
+    ]],
+    ["Indices", [
+      ["US30", "Dow Jones 30"], ["US500", "S&P 500"], ["NAS100", "Nasdaq 100"], ["US2000", "Russell 2000"],
+      ["GER40", "DAX 40"], ["UK100", "FTSE 100"], ["FRA40", "CAC 40"], ["EU50", "Euro Stoxx 50"],
+      ["JPN225", "Nikkei 225"], ["HK50", "Hang Seng 50"], ["AUS200", "ASX 200"],
+      ["NIFTY50", "Nifty 50"], ["BANKNIFTY", "Nifty Bank"], ["FINNIFTY", "Nifty Financial Services"], ["SENSEX", "BSE Sensex"],
+    ]],
+    ["Crypto", [
+      ["BTCUSD", "Bitcoin"], ["ETHUSD", "Ethereum"], ["SOLUSD", "Solana"], ["XRPUSD", "XRP"],
+      ["BNBUSD", "BNB"], ["ADAUSD", "Cardano"], ["DOGEUSD", "Dogecoin"], ["LTCUSD", "Litecoin"],
+      ["AVAXUSD", "Avalanche"], ["DOTUSD", "Polkadot"], ["LINKUSD", "Chainlink"], ["TRXUSD", "TRON"],
+      ["TONUSD", "Toncoin"], ["SHIBUSD", "Shiba Inu"],
+    ]],
+    ["Energy & commodities", [
+      ["USOIL", "WTI Crude Oil"], ["UKOIL", "Brent Crude Oil"], ["NATGAS", "Natural Gas"], ["COPPER", "Copper"],
+    ]],
+  ];
+  const CUSTOM = "__custom__";
+
   // ---------- State ----------
   const defaultState = () => ({
     strategies: [
@@ -12,15 +44,18 @@
         name: "Trend Pullback",
         description: "Example strategy — edit or delete it.",
         rules: [
-          "Higher-timeframe trend is clear",
-          "Price pulled back to key level / moving average",
-          "Confirmation candle formed",
-          "Risk:Reward is at least 1:2",
-          "Position size within max risk per trade",
-        ].map((text) => ({ id: uid(), text })),
+          ["Higher-timeframe trend is up", "long"],
+          ["Higher-timeframe trend is down", "short"],
+          ["Price pulled back to support / moving average", "long"],
+          ["Price pulled back to resistance / moving average", "short"],
+          ["Confirmation candle formed", "both"],
+          ["Risk:Reward is at least 1:2", "both"],
+          ["Position size within max risk per trade", "both"],
+        ].map(([text, side]) => ({ id: uid(), text, side })),
       },
     ],
     trades: [],
+    customSymbols: [],
   });
 
   let state = load();
@@ -28,6 +63,7 @@
     selected: new Set(), // strategy ids selected on the checklist
     checked: new Set(), // "strategyId:ruleId" keys that are ticked
     editingId: state.strategies[0]?.id ?? null,
+    direction: "Long",
     pendingShots: [], // data URLs attached to the trade being prepared
     view: "checklist",
     tradeId: null, // trade shown in the detail view
@@ -204,6 +240,11 @@
     if (pct >= 70) return { cls: "wait", text: `⚠️ ${pct}% met — wait, not all rules are met` };
     return { cls: "stop", text: `⛔ ${pct}% met — do NOT take this trade` };
   }
+  // A rule applies to a direction when its side is "both" (the default) or matches.
+  const appliesTo = (rule, direction) => !rule.side || rule.side === "both" || rule.side === direction.toLowerCase();
+  const rulesFor = (s, direction) => s.rules.filter((r) => appliesTo(r, direction));
+  const SIDE_LABEL = { both: "Both", long: "Long only", short: "Short only" };
+
   const pillClass = (pct) => (pct === 100 ? "go" : pct >= 70 ? "wait" : "stop");
 
   function fillColor(pct) {
@@ -255,7 +296,7 @@
     const items = [];
     for (const s of state.strategies) {
       if (!ui.selected.has(s.id)) continue;
-      for (const r of s.rules) items.push({ key: `${s.id}:${r.id}`, strategy: s, rule: r });
+      for (const r of rulesFor(s, ui.direction)) items.push({ key: `${s.id}:${r.id}`, strategy: s, rule: r });
     }
     return items;
   }
@@ -288,7 +329,7 @@
             ui.selected.has(s.id) ? ui.selected.delete(s.id) : ui.selected.add(s.id);
             renderChecklist();
           },
-        }, s.name, el("span", { class: "count" }, `${s.rules.length}`))
+        }, s.name, el("span", { class: "count" }, `${rulesFor(s, ui.direction).length}`))
       );
     }
 
@@ -299,15 +340,20 @@
       list.append(el("p", { class: "hint" }, "Your rules will appear here once you select a strategy."));
     }
     for (const s of selected) {
-      const done = s.rules.filter((r) => ui.checked.has(`${s.id}:${r.id}`)).length;
+      const rules = rulesFor(s, ui.direction);
+      const done = rules.filter((r) => ui.checked.has(`${s.id}:${r.id}`)).length;
       const group = el("div", { class: "checklist-group" },
         el("div", { class: "checklist-group-title" },
-          el("span", {}, s.name),
-          el("span", { class: "muted" }, `${done}/${s.rules.length}`)
+          el("span", {}, s.name, " ",
+            el("span", { class: ui.direction === "Long" ? "dir-long" : "dir-short" }, `· ${ui.direction} rules`)),
+          el("span", { class: "muted" }, `${done}/${rules.length}`)
         )
       );
-      if (!s.rules.length) group.append(el("p", { class: "hint" }, "This strategy has no rules yet."));
-      for (const r of s.rules) {
+      if (!rules.length) {
+        group.append(el("p", { class: "hint" },
+          s.rules.length ? `This strategy has no rules for ${ui.direction} trades.` : "This strategy has no rules yet."));
+      }
+      for (const r of rules) {
         const key = `${s.id}:${r.id}`;
         const isChecked = ui.checked.has(key);
         group.append(
@@ -320,7 +366,8 @@
                 renderChecklist();
               },
             }),
-            el("span", {}, r.text)
+            el("span", {}, r.text),
+            r.side && r.side !== "both" ? el("span", { class: "side-tag " + r.side }, SIDE_LABEL[r.side]) : null
           )
         );
       }
@@ -395,6 +442,64 @@
     }
   });
 
+  function setDirection(dir) {
+    ui.direction = dir;
+    document.querySelectorAll("#trade-direction .seg-btn").forEach((b) => {
+      const on = b.dataset.dir === dir;
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-checked", String(on));
+    });
+    renderChecklist();
+  }
+  document.querySelectorAll("#trade-direction .seg-btn").forEach((b) =>
+    b.addEventListener("click", () => setDirection(b.dataset.dir))
+  );
+
+  function renderSymbolOptions(selected = $("#trade-symbol").value) {
+    const select = $("#trade-symbol");
+    const groups = [...SYMBOLS];
+    const custom = state.customSymbols || [];
+    if (custom.length) groups.unshift(["My symbols", custom.map((c) => [c])]);
+    select.replaceChildren(
+      el("option", { value: "" }, "Select symbol…"),
+      ...groups.map(([label, items]) =>
+        el("optgroup", { label },
+          items.map(([code, name]) => el("option", { value: code }, name ? `${code} — ${name}` : code))
+        )
+      ),
+      el("option", { value: CUSTOM }, "+ Custom symbol…")
+    );
+    select.value = selected;
+    if (select.value !== selected) select.value = "";
+  }
+
+  $("#trade-symbol").addEventListener("change", (e) => {
+    const show = e.target.value === CUSTOM;
+    $("#custom-symbol-row").hidden = !show;
+    if (show) $("#custom-symbol").focus();
+  });
+
+  $("#custom-symbol-row").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const code = $("#custom-symbol").value.trim().toUpperCase().replace(/\s+/g, "");
+    if (!code) return;
+    const known = SYMBOLS.some(([, items]) => items.some(([c]) => c === code));
+    state.customSymbols = state.customSymbols || [];
+    if (!known && !state.customSymbols.includes(code)) {
+      state.customSymbols.push(code);
+      state.customSymbols.sort();
+      save();
+    }
+    $("#custom-symbol").value = "";
+    $("#custom-symbol-row").hidden = true;
+    renderSymbolOptions(code);
+  });
+
+  $("#custom-symbol-cancel").addEventListener("click", () => {
+    $("#custom-symbol-row").hidden = true;
+    $("#trade-symbol").value = "";
+  });
+
   $("#btn-reset").addEventListener("click", () => {
     ui.checked.clear();
     renderChecklist();
@@ -410,13 +515,13 @@
     const trade = {
       id: uid(),
       date: (timeInput ? new Date(timeInput) : new Date()).toISOString(),
-      symbol: $("#trade-symbol").value.trim().toUpperCase() || "—",
-      direction: $("#trade-direction").value,
+      symbol: ($("#trade-symbol").value !== CUSTOM && $("#trade-symbol").value) || "—",
+      direction: ui.direction,
       strategies: selected.map((s) => s.name),
       // snapshot of every rule and whether it was met, so later rule edits don't change history
       checks: selected.map((s) => ({
         strategy: s.name,
-        rules: s.rules.map((r) => ({ text: r.text, met: ui.checked.has(`${s.id}:${r.id}`) })),
+        rules: rulesFor(s, ui.direction).map((r) => ({ text: r.text, met: ui.checked.has(`${s.id}:${r.id}`) })),
       })),
       met,
       total,
@@ -432,6 +537,7 @@
     ui.checked.clear();
     ui.pendingShots = [];
     $("#trade-symbol").value = "";
+    $("#custom-symbol-row").hidden = true;
     $("#trade-notes").value = "";
     $("#trade-time").value = "";
     renderChecklist();
@@ -452,7 +558,7 @@
           onclick: () => { ui.editingId = s.id; renderStrategies(); },
         },
           el("span", {}, s.name),
-          el("span", { class: "meta" }, `${s.rules.length} rule${s.rules.length === 1 ? "" : "s"}`)
+          el("span", { class: "meta" }, `${rulesFor(s, "Long").length} long · ${rulesFor(s, "Short").length} short`)
         )
       );
     }
@@ -483,6 +589,13 @@
               save();
             },
           }),
+          el("select", {
+            class: "side-select " + (r.side || "both"), "aria-label": "Applies to",
+            onchange: (e) => { r.side = e.target.value; save(); renderStrategies(); },
+          },
+            Object.entries(SIDE_LABEL).map(([value, label]) =>
+              el("option", { value, selected: (r.side || "both") === value }, label))
+          ),
           el("button", {
             class: "icon-btn", type: "button", title: "Move up", disabled: idx === 0,
             onclick: () => { move(s.rules, idx, -1); save(); renderStrategies(); },
@@ -526,7 +639,7 @@
     const input = $("#new-rule-text");
     const text = input.value.trim();
     if (!s || !text) return;
-    s.rules.push({ id: uid(), text });
+    s.rules.push({ id: uid(), text, side: $("#new-rule-side").value });
     input.value = "";
     save();
     renderStrategies();
@@ -583,7 +696,7 @@
         return el("tr", { onclick: () => { location.hash = "trade-" + t.id; } },
           el("td", {}, new Date(t.date).toLocaleString()),
           el("td", {}, el("b", {}, t.symbol)),
-          el("td", {}, t.direction),
+          el("td", { class: t.direction === "Short" ? "dir-short" : "dir-long" }, t.direction),
           el("td", {}, t.strategies.join(", ")),
           el("td", { title: t.missing.length ? "Missing: " + t.missing.join("; ") : "All rules met" },
             el("span", { class: "pill " + pillClass(t.pct) }, `${t.pct}%`), ` ${t.met}/${t.total}`
@@ -661,7 +774,8 @@
         ),
 
         el("div", { class: "facts" },
-          el("div", { class: "fact" }, el("span", {}, "Direction"), el("b", {}, t.direction)),
+          el("div", { class: "fact" }, el("span", {}, "Direction"),
+            el("b", { class: t.direction === "Short" ? "dir-short" : "dir-long" }, t.direction === "Short" ? "▼ Short" : "▲ Long")),
           el("div", { class: "fact" }, el("span", {}, "Strategies"), el("b", {}, t.strategies.join(", ") || "—")),
           el("div", { class: "fact" }, el("span", {}, "Rules met"), el("b", {}, `${t.met} of ${t.total}`)),
           el("div", { class: "fact" }, el("span", {}, "Screenshots"), el("b", {}, String(ids.length)))
@@ -775,6 +889,7 @@
         await idbRun("readwrite", (store) => store.put(src, id));
       }
       state = rest;
+      renderSymbolOptions("");
       ui.selected.clear();
       ui.checked.clear();
       ui.editingId = state.strategies[0]?.id ?? null;
@@ -794,5 +909,6 @@
     if (ui.view === "trade") renderTrade();
   }
 
+  renderSymbolOptions("");
   loadShots().finally(route);
 })();

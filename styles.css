@@ -39,7 +39,7 @@ h2 { font-size: 1rem; margin: 1.25rem 0 0.5rem; }
 h2:first-child { margin-top: 0; }
 h3 { font-size: 0.9rem; margin: 1rem 0 0.5rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 
-.hidden { display: none !important; }
+.hidden, [hidden] { display: none !important; }
 .muted { color: var(--muted); font-size: 0.85rem; }
 .hint { color: var(--muted); font-size: 0.85rem; margin: 0 0 0.5rem; }
 
@@ -319,3 +319,29 @@ th { color: var(--muted); font-weight: 500; }
 .lightbox { background: rgba(0, 0, 0, 0.85); cursor: zoom-out; }
 .lightbox img { max-width: 100%; max-height: 90vh; border-radius: 6px; }
 .lightbox .icon-btn { position: absolute; top: 12px; right: 12px; color: #fff; font-size: 1.3rem; }
+
+/* ---------- Direction toggle & rule sides ---------- */
+.field { display: block; margin-top: 0; }
+.field-label { display: block; font-size: 0.85rem; color: var(--muted); }
+.seg { display: flex; margin-top: 0.3rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg-btn {
+  flex: 1; padding: 0.5rem 0.4rem; border: none; background: var(--surface-2); color: var(--muted);
+  font: inherit; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.seg-btn + .seg-btn { border-left: 1px solid var(--border); }
+.seg-btn.long.active { background: var(--green); color: #fff; }
+.seg-btn.short.active { background: var(--red); color: #fff; }
+.seg-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.custom-symbol { margin-top: 0.75rem; flex-wrap: wrap; }
+.custom-symbol input { flex: 1 1 200px; }
+
+.inline-form .side-select { width: auto; margin-top: 0; flex-shrink: 0; }
+.rule-list .side-select { width: auto; margin: 0; padding: 0.25rem 0.4rem; font-size: 0.8rem; border-radius: 999px; font-weight: 600; flex-shrink: 0; }
+.side-select.long { color: var(--green); border-color: var(--green); }
+.side-select.short { color: var(--red); border-color: var(--red); }
+.side-tag { font-size: 0.75rem; font-weight: 600; padding: 0.05rem 0.45rem; border-radius: 999px; margin-left: 0.4rem; }
+.side-tag.long { color: var(--green); background: color-mix(in srgb, var(--green) 15%, transparent); }
+.side-tag.short { color: var(--red); background: color-mix(in srgb, var(--red) 15%, transparent); }
+.dir-long { color: var(--green); }
+.dir-short { color: var(--red); }
+@media (max-width: 560px) { #form-add-rule { flex-wrap: wrap; } #form-add-rule input { flex: 1 1 100%; } }

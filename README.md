@@ -5,7 +5,9 @@ A pre-trade checklist that keeps you honest. Define your strategies and their ru
 ## Features
 
 - **Strategies & Rules** – add, rename, describe and delete strategies; add, edit, reorder and delete each strategy's rules.
-- **Take a Trade** – pick one or more strategies, tick the rules you've met, and watch the readiness bar:
+- **Long / Short rules** – mark each rule as *Both*, *Long only* or *Short only*. When you take a trade, the checklist shows only the rules for the direction you picked.
+- **Symbol dropdown** – pick from metals (XAUUSD, XAGUSD…), major forex pairs, forex crosses, indices (US30, NAS100, GER40, NIFTY50, BANKNIFTY…), crypto (BTCUSD, ETHUSD…) and energy. Use *Custom symbol…* to add anything else; it's saved under *My symbols*.
+- **Take a Trade** – pick a symbol and Long/Short, then one or more strategies, tick the rules you've met, and watch the readiness bar:
   - 🟢 100% → you can take the trade
   - 🟡 70–99% → wait, not all rules are met (missing rules are listed)
   - 🔴 below 70% → do not take the trade

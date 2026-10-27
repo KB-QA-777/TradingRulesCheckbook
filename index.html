@@ -28,22 +28,28 @@
           <h2>1. Trade details</h2>
           <div class="form-row three">
             <label>Symbol
-              <input id="trade-symbol" type="text" placeholder="e.g. NIFTY, AAPL, BTCUSD" autocomplete="off" />
+              <select id="trade-symbol"></select>
             </label>
-            <label>Direction
-              <select id="trade-direction">
-                <option value="Long">Long</option>
-                <option value="Short">Short</option>
-              </select>
-            </label>
+            <div class="field">
+              <span class="field-label" id="direction-label">Direction</span>
+              <div class="seg" id="trade-direction" role="radiogroup" aria-labelledby="direction-label">
+                <button type="button" class="seg-btn long active" data-dir="Long" role="radio" aria-checked="true">▲ Long</button>
+                <button type="button" class="seg-btn short" data-dir="Short" role="radio" aria-checked="false">▼ Short</button>
+              </div>
+            </div>
             <label>Trade time
               <input id="trade-time" type="datetime-local" />
             </label>
           </div>
+          <form id="custom-symbol-row" class="inline-form custom-symbol" hidden>
+            <input id="custom-symbol" type="text" placeholder="Type a symbol, e.g. AAPL or RELIANCE" autocomplete="off" />
+            <button class="btn primary" type="submit">Add symbol</button>
+            <button class="btn ghost" type="button" id="custom-symbol-cancel">Cancel</button>
+          </form>
           <p class="hint">Leave the time empty to use the moment you log the trade.</p>
 
           <h2>2. Select strategies</h2>
-          <p class="hint">Pick one or more strategies. Their rules are combined into the checklist.</p>
+          <p class="hint">Pick one or more strategies. Their rules for the chosen direction are combined into the checklist.</p>
           <div id="strategy-picker" class="chips"></div>
 
           <h2>3. Check the rules you've met</h2>
@@ -111,8 +117,14 @@
             <h3>Rules</h3>
             <form id="form-add-rule" class="inline-form">
               <input id="new-rule-text" type="text" placeholder="e.g. Price above 200 EMA" required />
+              <select id="new-rule-side" class="side-select" aria-label="Applies to">
+                <option value="both">Both directions</option>
+                <option value="long">Long only</option>
+                <option value="short">Short only</option>
+              </select>
               <button class="btn primary" type="submit">Add rule</button>
             </form>
+            <p class="hint">Set each rule to <b>Both</b>, <b>Long only</b> or <b>Short only</b>. When you take a trade, the checklist shows only the rules for that direction.</p>
             <ol id="rule-list" class="rule-list"></ol>
           </div>
         </div>
